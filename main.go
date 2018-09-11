@@ -34,9 +34,9 @@ import (
 	"github.com/gorilla/securecookie"
 	"github.com/kardianos/osext"
 
-	"github.com/opennota/widdly/api"
-	"github.com/opennota/widdly/store"
-	_ "github.com/opennota/widdly/store/bolt"
+	"gitlab.com/opennota/widdly/api"
+	"gitlab.com/opennota/widdly/store"
+	_ "gitlab.com/opennota/widdly/store/bolt"
 )
 
 var (

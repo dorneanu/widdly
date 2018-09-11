@@ -26,7 +26,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/opennota/widdly/store"
+	"gitlab.com/opennota/widdly/store"
 )
 
 var (

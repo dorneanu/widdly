@@ -22,7 +22,7 @@ import (
 
 	"github.com/boltdb/bolt"
 
-	"github.com/opennota/widdly/store"
+	"gitlab.com/opennota/widdly/store"
 )
 
 // boltStore is a BoltDB store for tiddlers.
