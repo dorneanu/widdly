@@ -4,13 +4,6 @@ stages:
   - build
   - test
 
-before_script:
-  - go get github.com/boltdb/bolt
-  - go get github.com/daaku/go.zipexe
-  - go get github.com/gorilla/securecookie
-  - go get github.com/kardianos/osext
-  - go get golang.org/x/crypto/bcrypt
-
 build:
   stage: build
   script:
