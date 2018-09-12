@@ -1,4 +1,4 @@
-widdly [![License](http://img.shields.io/:license-gpl3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0.html) [![Build Status](https://travis-ci.org/opennota/widdly.png?branch=master)](https://travis-ci.org/opennota/widdly)
+widdly [![License](http://img.shields.io/:license-gpl3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0.html) [![Pipeline status](https://gitlab.com/opennota/widdly/badges/master/pipeline.svg)](https://gitlab.com/opennota/widdly/commits/master)
 ======
 
 This is a minimal self-hosted app, written in Go, that can serve as a backend
