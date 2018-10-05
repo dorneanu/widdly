@@ -57,6 +57,8 @@ func main() {
 	api.ServeIndex = func(w http.ResponseWriter, r *http.Request) {
 		if fi, err := os.Stat(wiki); err == nil && isRegular(fi) { // Prefer the real file, if it exists.
 			http.ServeFile(w, r, wiki)
+		} else if fi, err := os.Stat("index.html"); err == nil && isRegular(fi) {
+			http.ServeFile(w, r, "index.html")
 		} else if len(wikiData) > 0 { // ...or use an embedded one.
 			w.Header().Add("Content-Type", "text/html")
 			w.Header().Add("Content-Encoding", "deflate")
