@@ -14,8 +14,10 @@ Go 1.8+
 
 ## Usage
 
-Put `index.html` next to the executable (or, alternatively, embed `index.html`
-into the executable by running `zip -9 - index.html | cat >> widdly`). Run:
+Put `index.html` next to the executable (or in the current directory; or,
+alternatively, embed `index.html` into the executable by running
+`zip -9 - index.html | cat >> widdly`).
+Run:
 
     widdly -http :1337 -p letmein -db /path/to/the/database
 
