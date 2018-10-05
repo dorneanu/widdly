@@ -34,13 +34,11 @@ import (
 
 	"gitlab.com/opennota/widdly/api"
 	"gitlab.com/opennota/widdly/store"
-	_ "gitlab.com/opennota/widdly/store/bolt"
 )
 
 var (
-	addr       = flag.String("http", "127.0.0.1:8080", "HTTP service address")
-	password   = flag.String("p", "", "Optional password to protect the wiki (the username is widdly)")
-	dataSource = flag.String("db", "widdly.db", "Database file")
+	addr     = flag.String("http", "127.0.0.1:8080", "HTTP service address")
+	password = flag.String("p", "", "Optional password to protect the wiki (the username is widdly)")
 )
 
 func main() {

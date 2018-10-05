@@ -157,7 +157,11 @@ func getTiddler(w http.ResponseWriter, r *http.Request) {
 
 	t, err := Store.Get(r.Context(), key)
 	if err != nil {
-		internalError(w, err)
+		if err == store.ErrNotFound {
+			http.NotFound(w, r)
+		} else {
+			internalError(w, err)
+		}
 		return
 	}
 

@@ -29,6 +29,14 @@ widdly will search for `index.html` in this order:
 - in the current directory;
 - embedded in the executable (to embed, run `zip -9 - index.html | cat >> widdly`).
 
+## Flat file store
+
+Instead of a bolt database, you can build widdly with a flat file store. Just add `-tags flatfile`
+after `go get` or `go build`.
+
+- `-db /path/to/a/directory` - the directory where the data (as ordinary files) will be stored
+(by default `widdly_data` in the current directory).
+
 ## Build your own index.html
 
     git clone https://github.com/Jermolene/TiddlyWiki5
