@@ -8,15 +8,12 @@ for a personal [TiddlyWiki](http://tiddlywiki.com/).
 
 Go 1.8+
 
-## Installation
+## Install
 
     go get -u gitlab.com/opennota/widdly
 
-## Usage
+## Use
 
-Put `index.html` next to the executable (or in the current directory; or,
-alternatively, embed `index.html` into the executable by running
-`zip -9 - index.html | cat >> widdly`).
 Run:
 
     widdly -http :1337 -p letmein -db /path/to/the/database
@@ -25,6 +22,12 @@ Run:
 - `-p letmein` - protect by the password (optional); the username will be `widdly`.
 - `-db /path/to/the/database` - explicitly specify which file to use for the
   database (by default `widdly.db` in the current directory)
+
+widdly will search for `index.html` in this order:
+
+- next to the executable (in the same directory);
+- in the current directory;
+- embedded in the executable (to embed, run `zip -9 - index.html | cat >> widdly`).
 
 ## Build your own index.html
 
