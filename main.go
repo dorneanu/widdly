@@ -31,7 +31,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/daaku/go.zipexe"
-	"github.com/gorilla/securecookie"
 
 	"gitlab.com/opennota/widdly/api"
 	"gitlab.com/opennota/widdly/store"
@@ -42,9 +41,6 @@ var (
 	addr       = flag.String("http", "127.0.0.1:8080", "HTTP service address")
 	password   = flag.String("p", "", "Optional password to protect the wiki (the username is widdly)")
 	dataSource = flag.String("db", "widdly.db", "Database file")
-
-	hashKey      = securecookie.GenerateRandomKey(64)
-	secureCookie = securecookie.New(hashKey, nil)
 )
 
 func main() {
