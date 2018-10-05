@@ -32,7 +32,6 @@ import (
 
 	"github.com/daaku/go.zipexe"
 	"github.com/gorilla/securecookie"
-	"github.com/kardianos/osext"
 
 	"gitlab.com/opennota/widdly/api"
 	"gitlab.com/opennota/widdly/store"
@@ -111,7 +110,7 @@ func main() {
 // it falls back to searching in the current directory.
 func pathToWiki() string {
 	dir := ""
-	path, err := osext.Executable() //TODO(opennota): switch to the new os.Executable() once Go 1.8 is out.
+	path, err := os.Executable()
 	if err == nil {
 		dir = filepath.Dir(path)
 	} else if wd, err := os.Getwd(); err == nil {
@@ -143,7 +142,7 @@ func deflate(data []byte) ([]byte, error) {
 // tryReadWikiFromExecutable tries to read index.html from a zip archive appended to the current executable.
 // If it succeeds, it returns deflate-compressed index.html. If it fails, it returns nil.
 func tryReadWikiFromExecutable() []byte {
-	path, err := osext.Executable()
+	path, err := os.Executable()
 	if err != nil {
 		return nil
 	}
