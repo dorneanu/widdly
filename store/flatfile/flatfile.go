@@ -158,7 +158,7 @@ func (s *flatFileStore) All(_ context.Context) ([]store.Tiddler, error) {
 	return tiddlers, nil
 }
 
-func getNextRevision(s *flatFileStore, key string) int {
+func (s *flatFileStore) nextRevision(key string) int {
 	files, _ := filepath.Glob(filepath.Join(s.tiddlerHistoryPath, "*"+key+"#[1-9]*"))
 	r := regexp.MustCompile(regexp.QuoteMeta(sep+key) + `#(\d+)$`)
 	maxRev := 0
@@ -198,7 +198,7 @@ func (s *flatFileStore) Put(_ context.Context, tiddler store.Tiddler) (int, erro
 		return 0, err
 	}
 
-	rev := getNextRevision(s, skey)
+	rev := s.nextRevision(skey)
 
 	metaPath := filepath.Join(s.tiddlersPath, skey+".meta")
 	js["revision"] = rev
@@ -226,7 +226,7 @@ func (s *flatFileStore) Delete(ctx context.Context, key string) error {
 
 	skey := sanitizeKey(key)
 	if !skipHistory(key) {
-		rev := getNextRevision(s, skey)
+		rev := s.nextRevision(skey)
 		histPath := filepath.Join(s.tiddlerHistoryPath, fmt.Sprintf("%s#%d", skey, rev))
 		if err := ioutil.WriteFile(histPath, nil, 0644); err != nil {
 			return err
