@@ -6,7 +6,7 @@ for a personal [TiddlyWiki](http://tiddlywiki.com/).
 
 ## Requirements
 
-Go 1.7+
+Go 1.8+
 
 ## Installation
 
