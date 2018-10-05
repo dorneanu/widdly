@@ -117,7 +117,7 @@ func (s *boltStore) All(_ context.Context) ([]store.Tiddler, error) {
 	return tiddlers, nil
 }
 
-func getLastRevision(b *bolt.Bucket, mkey []byte) int {
+func getNextRevision(b *bolt.Bucket, mkey []byte) int {
 	var meta struct{ Revision int }
 	data := b.Get(mkey)
 	if data != nil && json.Unmarshal(data, &meta) == nil {
@@ -139,7 +139,7 @@ func (s *boltStore) Put(ctx context.Context, tiddler store.Tiddler) (int, error)
 		b := tx.Bucket([]byte("tiddler"))
 		mkey := []byte(tiddler.Key + "|1")
 
-		rev = getLastRevision(b, mkey)
+		rev = getNextRevision(b, mkey)
 		js["revision"] = rev
 		data, err := json.Marshal(js)
 		if err != nil {
@@ -180,7 +180,7 @@ func (s *boltStore) Delete(ctx context.Context, key string) error {
 		b := tx.Bucket([]byte("tiddler"))
 		mkey := []byte(key + "|1")
 
-		rev := getLastRevision(b, mkey)
+		rev := getNextRevision(b, mkey)
 
 		err := b.Put(mkey, nil)
 		if err != nil {
