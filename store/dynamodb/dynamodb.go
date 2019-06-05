@@ -38,6 +38,8 @@ func init() {
 	store.MustOpen = MustOpen
 }
 
+// NewDynamodbStore requires an URL to the dynamoDB instance
+// and returns an object which implements TiddlerStore
 func NewDynamodbStore(url string) *dynamodbStore {
 	config := &aws.Config{
 		Region:   aws.String("us-west-1"),
@@ -268,7 +270,7 @@ func (d *dynamodbStore) NextRevision(key string) int {
 		}
 
 		// Increase revision
-		nextRev += 1
+		nextRev++
 
 		log.Printf("NextRev %s %d", key, nextRev)
 		return nextRev

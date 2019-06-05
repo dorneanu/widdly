@@ -12,11 +12,14 @@ import (
 )
 
 type (
+	// TiddlerRevision stores a revision of a tiddler
 	TiddlerRevision struct {
 		Key      string
 		Revision int
 		Text     string
 	}
+
+	// TiddlerHistory is the DynamoDB table containing revisions
 	TiddlerHistory struct {
 		tableName string
 		store     *dynamodbStore
