@@ -11,14 +11,14 @@
 // You should have received a copy of the GNU General Public License along
 // with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-//+build bolt
+//+build dynamodb
 
 package main
 
 import (
 	"flag"
 
-	_ "gitlab.com/opennota/widdly/store/bolt"
+	_ "gitlab.com/opennota/widdly/store/dynamodb"
 )
 
-var dataSource = flag.String("db", "widdly.db", "Database file")
+var dataSource = flag.String("url", "", "URL to your DynamoDB instance")
