@@ -176,7 +176,8 @@ func (d *dynamodbStore) All(_ context.Context) ([]store.Tiddler, error) {
 	return tiddlers, nil
 }
 
-// not fully finished
+// Put saves tiddler to the store, incrementing and returning revision.
+// The tiddler is also written to the tiddlers_history table.
 func (d *dynamodbStore) Put(_ context.Context, tiddler store.Tiddler) (int, error) {
 	// Put to tiddlers table
 	rev, err := d.tiddlerData.Put(tiddler)
@@ -208,7 +209,7 @@ func (d *dynamodbStore) Delete(c context.Context, key string) error {
 		return fmt.Errorf("Error deleting item %s", key)
 	}
 
-	// Get meta information and delete each version
+	// Get meta information
 	meta, err := d.GetMeta(tiddler)
 	if err != nil {
 		return fmt.Errorf("Couldn't get tiddler meta")
@@ -219,6 +220,7 @@ func (d *dynamodbStore) Delete(c context.Context, key string) error {
 		return fmt.Errorf("Couldn't convert revision to int, %#v", err)
 	}
 
+	// Make sure to delete every revision
 	for i := 1; i <= currentRev; i++ {
 		if err := d.tiddlerHistory.Delete(key, i); err != nil {
 			log.Printf("Couldn't delete revision %d for tiddler %s\n", i, key)
@@ -271,8 +273,6 @@ func (d *dynamodbStore) NextRevision(key string) int {
 
 		// Increase revision
 		nextRev++
-
-		log.Printf("NextRev %s %d", key, nextRev)
 		return nextRev
 	}
 
