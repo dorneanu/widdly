@@ -42,7 +42,6 @@ func init() {
 // and returns an object which implements TiddlerStore
 func NewDynamodbStore(url string) *dynamodbStore {
 	config := &aws.Config{
-		Region:   aws.String("us-west-1"),
 		Endpoint: aws.String(url),
 	}
 	sess := session.Must(session.NewSession(config))

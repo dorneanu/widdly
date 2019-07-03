@@ -21,4 +21,4 @@ import (
 	_ "gitlab.com/opennota/widdly/store/dynamodb"
 )
 
-var dataSource = flag.String("url", "", "URL to your DynamoDB instance")
+var dataSource = flag.String("endpoint", "", "URL to your DynamoDB instance (e.g. https://dynamodb.eu-central-1.amazonaws.com)")
