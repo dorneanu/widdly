@@ -37,6 +37,15 @@ after `go get` or `go build`.
 - `-db /path/to/a/directory` - the directory where the data (as ordinary files) will be stored
 (by default `widdly_data` in the current directory).
 
+## DynamoDB store
+
+You can also use DynamoDB to store your tiddlers. Before doing this make sure you have a
+dedicated account with enough permissions to create/change/delete tables in DynamoDB. In order
+to build the binary with support for DynamoDB make sure you add `-tags dynamodb` after `go get` 
+or `go build`.
+
+- `-endpoint endpoint-url` - the endpoint URL of your DynamoDB (e.g. https://dynamodb.eu-west-1.amazonaws.com) 
+
 ## Build your own index.html
 
     git clone https://github.com/Jermolene/TiddlyWiki5
