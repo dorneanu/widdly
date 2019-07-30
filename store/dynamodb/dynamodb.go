@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 
 	"gitlab.com/opennota/widdly/store"
 )
@@ -21,7 +22,7 @@ import (
 // dynamodbStore is a store for tiddlers using AWS DynamoDB
 type dynamodbStore struct {
 	sess             *session.Session
-	svc              *dynamodb.DynamoDB
+	svc              dynamodbiface.DynamoDBAPI
 	tiddlerData      *TiddlerData
 	tiddlerHistory   *TiddlerHistory
 	table            string
