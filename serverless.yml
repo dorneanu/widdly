@@ -1,0 +1,174 @@
+service: tiddlywiki-serverless 
+
+# Custom variables
+custom:
+  tiddlersTableName: tiddlers
+  tiddlersTableArn: 
+    Fn::Join:
+    - ":"
+    - - arn
+      - aws
+      - dynamodb
+      - Ref: AWS::Region
+      - Ref: AWS::AccountId
+      - table/${self:custom.tiddlersTableName}
+  tiddlersHistoryTableName: tiddlers_history
+  tiddlersHistoryTableArn: 
+    Fn::Join: 
+    - ":" 
+    - - arn
+      - aws
+      - dynamodb
+      - Ref: AWS::Region
+      - Ref: AWS::AccountId
+      - table/${self:custom.tiddlersHistoryTableName}
+
+provider: 
+    name: 'aws'
+    runtime: go1.x
+    region: ${opt:region, 'eu-central-1'}
+    role: ${opt:stage}LambdaExecutionRole
+    deploymentBucket:
+        name: widdly
+    environment:
+        ENTRYPOINT: https://dynamodb.${self:provider.region}.amazonaws.com 
+        WIKIFILE: index.html
+        DYNAMODB_TABLE: ${self:service}-${opt:stage, self:opt.stage}
+        URLPATH: api
+
+package:
+    artifact: widdly-lambda.zip
+
+functions:
+    wiki:  
+        name: wiki-lambda-wiki-${opt:stage} 
+        handler: widdly-lambda
+        memorySize: 128
+        timeout: 60
+        events:
+          - http:
+              path: /api/{any+}
+              method: ANY
+
+    index:  
+        name: wiki-lambda-index-${opt:stage}
+        handler: widdly-lambda
+        memorySize: 128
+        timeout: 60
+        events:
+          - http:
+              path: /api/
+              method: get
+
+resources:
+  Description: Serverless Tiddlywiki using DynamoDB as backend (${opt:stage})
+  Resources:
+    #    TiddlersTable:
+    #      Type: AWS::DynamoDB::Table
+    #      DeletionPolicy: Retain
+    #      Properties:
+    #        TableName: ${self:custom.tiddlersTableName} 
+    #        AttributeDefinitions:
+    #            - AttributeName: Key
+    #              AttributeType: S
+    #        KeySchema:
+    #            - AttributeName: Key
+    #              KeyType: HASH
+    #        ProvisionedThroughput:
+    #            ReadCapacityUnits: 5
+    #            WriteCapacityUnits: 5
+    #
+    #    TiddlersHistoryTable:
+    #      Type: AWS::DynamoDB::Table
+    #      DeletionPolicy: Retain
+    #      Properties:
+    #        TableName: ${self:custom.tiddlersHistoryTableName}
+    #        AttributeDefinitions:
+    #            - AttributeName: Key
+    #              AttributeType: S
+    #            - AttributeName: Revision
+    #              AttributeType: N
+    #        KeySchema:
+    #            - AttributeName: Key
+    #              KeyType: HASH
+    #            - AttributeName: Revision
+    #              KeyType: RANGE
+    #        ProvisionedThroughput:
+    #            ReadCapacityUnits: 5
+    #            WriteCapacityUnits: 5
+
+    devLambdaExecutionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: devLambdaExecutionRole 
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: tiddlywiki-serverless-role-${opt:stage}
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource: 
+                    - arn:aws:logs:*:*:*
+                - Effect: Allow
+                  Action:
+                    - dynamodb:CreateTable
+                    - dynamodb:DescribeTable
+                    - dynamodb:UpdateTable
+                    - dynamodb:GetTable
+                    - dynamodb:PutItem
+                    - dynamodb:GetItem
+                    - dynamodb:DeleteItem
+                    - dynamodb:Query
+                    - dynamodb:Scan
+                  Resource: 
+                    - ${self:custom.tiddlersTableArn} 
+                    - ${self:custom.tiddlersHistoryTableArn} 
+
+    # Tiddlywiki is running in read-only modus
+    prodLambdaExecutionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: prodLambdaExecutionRole 
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: tiddlywiki-serverless-role-${opt:stage}
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource: 
+                    - arn:aws:logs:*:*:*
+                - Effect: Allow
+                  Action:
+                    - dynamodb:DescribeTable
+                    - dynamodb:UpdateTable
+                    - dynamodb:GetTable
+                    - dynamodb:GetItem
+                    - dynamodb:Query
+                    - dynamodb:Scan
+                  Resource: 
+                    - ${self:custom.tiddlersTableArn} 
+                    - ${self:custom.tiddlersHistoryTableArn} 
