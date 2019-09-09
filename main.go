@@ -12,6 +12,9 @@
 // with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // widdly is a self-hosted web application which can serve as a personal TiddlyWiki.
+
+//+build !lambda
+
 package main
 
 import (
@@ -19,6 +22,7 @@ import (
 	"compress/flate"
 	"crypto/subtle"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -30,7 +34,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/daaku/go.zipexe"
+	zipexe "github.com/daaku/go.zipexe"
 
 	"gitlab.com/opennota/widdly/api"
 	"gitlab.com/opennota/widdly/store"
@@ -39,6 +43,7 @@ import (
 var (
 	addr     = flag.String("http", "127.0.0.1:8080", "HTTP service address")
 	password = flag.String("p", "", "Optional password to protect the wiki (the username is widdly)")
+	urlPath  = flag.String("url-path", "", "URL path (optional)")
 )
 
 func main() {
@@ -49,6 +54,10 @@ func main() {
 
 	// Maybe read index.html from a zip archive appended to the current executable.
 	wikiData := tryReadWikiFromExecutable()
+
+	// Set default URL path
+	api.DefaultURLPath = fmt.Sprintf("%s", *urlPath)
+	api.InitRoutes()
 
 	// Override api.ServeIndex to allow serving embedded index.html.
 	wiki := pathToWiki()
@@ -97,7 +106,7 @@ func main() {
 		}
 	}
 
-	log.Fatal(http.ListenAndServe(*addr, nil))
+	log.Fatal(http.ListenAndServe(*addr, api.ServeMux))
 }
 
 // pathToWiki returns a path that should be checked for index.html.

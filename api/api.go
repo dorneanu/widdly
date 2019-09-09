@@ -41,16 +41,28 @@ var (
 
 	// ServeIndex is a callback that should serve the index page.
 	ServeIndex = func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Serving index")
 		http.ServeFile(w, r, "index.html")
 	}
+
+	// ServeMux is a HTTP router (multiplexor)
+	ServeMux = http.NewServeMux()
+
+	// DefaultURLPath specifies default URL path
+	DefaultURLPath = ""
 )
 
 func init() {
-	http.HandleFunc("/", withLoggingAndAuth(index))
-	http.HandleFunc("/status", withLoggingAndAuth(status))
-	http.HandleFunc("/recipes/all/tiddlers.json", withLoggingAndAuth(list))
-	http.HandleFunc("/recipes/all/tiddlers/", withLoggingAndAuth(tiddler))
-	http.HandleFunc("/bags/bag/tiddlers/", withLoggingAndAuth(remove))
+}
+
+// InitRoutes inits the mux routes
+func InitRoutes() {
+	log.Println("Default URL Path: ", DefaultURLPath)
+	ServeMux.HandleFunc(fmt.Sprintf("%s/", DefaultURLPath), withLoggingAndAuth(index))
+	ServeMux.HandleFunc(fmt.Sprintf("%s/status", DefaultURLPath), withLoggingAndAuth(status))
+	ServeMux.HandleFunc(fmt.Sprintf("%s/recipes/all/tiddlers.json", DefaultURLPath), withLoggingAndAuth(list))
+	ServeMux.HandleFunc(fmt.Sprintf("%s/recipes/all/tiddlers/", DefaultURLPath), withLoggingAndAuth(tiddler))
+	ServeMux.HandleFunc(fmt.Sprintf("%s/bags/bag/tiddlers/", DefaultURLPath), withLoggingAndAuth(remove))
 }
 
 // internalError logs err to the standard error and returns HTTP 500 Internal Server Error.
@@ -118,9 +130,17 @@ func index(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
+	log.Println("URL Path: ", r.URL.Path)
+	if DefaultURLPath != "" {
+		if r.URL.Path != DefaultURLPath {
+			http.NotFound(w, r)
+			return
+		}
+	} else {
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
 	}
 	ServeIndex(w, r)
 }
@@ -153,7 +173,7 @@ func list(w http.ResponseWriter, r *http.Request) {
 
 // getTiddler serves a fat tiddler.
 func getTiddler(w http.ResponseWriter, r *http.Request) {
-	key := strings.TrimPrefix(r.URL.Path, "/recipes/all/tiddlers/")
+	key := strings.TrimPrefix(r.URL.Path, fmt.Sprintf("%s/recipes/all/tiddlers/", DefaultURLPath))
 
 	t, err := Store.Get(r.Context(), key)
 	if err != nil {
@@ -177,7 +197,7 @@ func getTiddler(w http.ResponseWriter, r *http.Request) {
 
 // putTiddler saves a tiddler.
 func putTiddler(w http.ResponseWriter, r *http.Request) {
-	key := strings.TrimPrefix(r.URL.Path, "/recipes/all/tiddlers/")
+	key := strings.TrimPrefix(r.URL.Path, fmt.Sprintf("%s/recipes/all/tiddlers/", DefaultURLPath))
 
 	var js map[string]interface{}
 	err := json.NewDecoder(r.Body).Decode(&js)
@@ -230,7 +250,7 @@ func remove(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	key := strings.TrimPrefix(r.URL.Path, "/bags/bag/tiddlers/")
+	key := strings.TrimPrefix(r.URL.Path, fmt.Sprintf("%s/bags/bag/tiddlers/", DefaultURLPath))
 	err := Store.Delete(r.Context(), key)
 	if err != nil {
 		internalError(w, err)

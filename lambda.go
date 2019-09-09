@@ -18,9 +18,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
-	"os"
-	"os/exec"
 
 	"github.com/apex/gateway"
 	"github.com/kelseyhightower/envconfig"
@@ -33,15 +30,7 @@ import (
 type config struct {
 	ENTRYPOINT string `required:"true"`
 	WIKIFILE   string `required:"true"`
-}
-
-func debug() {
-	cmd := exec.Command("ls", "-lah")
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Fatalf("cmd.Run() failed with %s\n", err)
-	}
-	fmt.Printf("combined out:\n%s\n", string(out))
+	URLPATH    string `required:"true"`
 }
 
 func main() {
@@ -54,18 +43,10 @@ func main() {
 
 	// Open store (should be DynamoDB)
 	api.Store = store.MustOpen(conf.ENTRYPOINT)
-	// debug()
-	log.Println("Opening file")
-	// Override api.ServeIndex to allow serving embedded index.html.
-	api.ServeIndex = func(w http.ResponseWriter, r *http.Request) {
-		if _, err := os.Stat("index.html"); err == nil {
-			http.ServeFile(w, r, "index.html")
-			log.Println("I've found file")
-		} else {
-			log.Println("I've didn't found file")
-			http.NotFound(w, r)
-		}
-	}
+
+	// Set default URL path
+	api.DefaultURLPath = fmt.Sprintf("%s", conf.URLPATH)
+	api.InitRoutes()
 
 	// Listen for incoming APIGateway requests
 	gateway.ListenAndServe("", api.ServeMux)
