@@ -15,6 +15,7 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -81,6 +82,7 @@ func TestIndex(t *testing.T) {
 }
 
 func TestStatus(t *testing.T) {
+	SetStatus()
 	r := httptest.NewRequest("GET", "/status", nil)
 	w := httptest.NewRecorder()
 	status(w, r)
@@ -91,8 +93,13 @@ func TestStatus(t *testing.T) {
 	if want := "application/json"; ct != want {
 		t.Errorf("want %s, got %v", want, ct)
 	}
+
 	body := w.Body.String()
-	if want := `{"username":"me","space":{"recipe":"all"}}`; body != want {
+	want, err := json.Marshal(InstanceStatus)
+	if err != nil {
+		t.Error("Couldn't marshalize InstanceStatus")
+	}
+	if body != string(want) {
 		t.Errorf("want %q, got %q", want, body)
 	}
 }

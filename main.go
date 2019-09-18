@@ -44,6 +44,7 @@ var (
 	addr     = flag.String("http", "127.0.0.1:8080", "HTTP service address")
 	password = flag.String("p", "", "Optional password to protect the wiki (the username is widdly)")
 	urlPath  = flag.String("url-path", "", "URL path (optional)")
+	readOnly = flag.Bool("ro", false, "Specify if Tiddlywiki should run in read-only mode")
 )
 
 func main() {
@@ -54,6 +55,10 @@ func main() {
 
 	// Maybe read index.html from a zip archive appended to the current executable.
 	wikiData := tryReadWikiFromExecutable()
+
+	// Init status information
+	api.ReadOnly = *readOnly
+	api.SetStatus()
 
 	// Set default URL path
 	api.DefaultURLPath = fmt.Sprintf("%s", *urlPath)

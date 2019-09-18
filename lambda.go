@@ -31,6 +31,7 @@ type config struct {
 	ENTRYPOINT string `required:"true"`
 	WIKIFILE   string `required:"true"`
 	URLPATH    string `required:"true"`
+	READONLY   bool   `default: false`
 }
 
 func main() {
@@ -43,6 +44,11 @@ func main() {
 
 	// Open store (should be DynamoDB)
 	api.Store = store.MustOpen(conf.ENTRYPOINT)
+
+	// Init status information
+	// Init status information
+	api.ReadOnly = conf.READONLY
+	api.SetStatus()
 
 	// Set default URL path
 	api.DefaultURLPath = fmt.Sprintf("%s", conf.URLPATH)

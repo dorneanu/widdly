@@ -29,6 +29,18 @@ import (
 	"gitlab.com/opennota/widdly/store"
 )
 
+// TiddlyWikiStatus contains all instance relevant information
+type TiddlyWikiStatus struct {
+	Username string           `json:"username"`
+	ReadOnly bool             `json:"read_only"`
+	Space    TiddlyWikiRecipe `json:"space"`
+}
+
+// TiddlyWikiRecipe represents a bag
+type TiddlyWikiRecipe struct {
+	Recipe string `json:"recipe"`
+}
+
 var (
 	// Store should point to an implementation of TiddlerStore.
 	Store store.TiddlerStore
@@ -48,12 +60,15 @@ var (
 	// ServeMux is a HTTP router (multiplexor)
 	ServeMux = http.NewServeMux()
 
+	// ReadOnly defines if TW instance should run in read-only mode
+	ReadOnly = false
+
+	// InstanceStatus contains all instance relevant information
+	InstanceStatus TiddlyWikiStatus
+
 	// DefaultURLPath specifies default URL path
 	DefaultURLPath = ""
 )
-
-func init() {
-}
 
 // InitRoutes inits the mux routes
 func InitRoutes() {
@@ -63,6 +78,17 @@ func InitRoutes() {
 	ServeMux.HandleFunc(fmt.Sprintf("%s/recipes/all/tiddlers.json", DefaultURLPath), withLoggingAndAuth(list))
 	ServeMux.HandleFunc(fmt.Sprintf("%s/recipes/all/tiddlers/", DefaultURLPath), withLoggingAndAuth(tiddler))
 	ServeMux.HandleFunc(fmt.Sprintf("%s/bags/bag/tiddlers/", DefaultURLPath), withLoggingAndAuth(remove))
+}
+
+// SetStatus sets status response
+func SetStatus() {
+	InstanceStatus = TiddlyWikiStatus{
+		Username: "me",
+		ReadOnly: ReadOnly,
+		Space: TiddlyWikiRecipe{
+			Recipe: "all",
+		},
+	}
 }
 
 // internalError logs err to the standard error and returns HTTP 500 Internal Server Error.
@@ -152,8 +178,13 @@ func status(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Send status to client
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(`{"username":"me","space":{"recipe":"all"}}`))
+	jsonData, err := json.Marshal(InstanceStatus)
+	if err != nil {
+		http.Error(w, "couldn't marshal status information", http.StatusInternalServerError)
+	}
+	w.Write(jsonData)
 }
 
 // list serves a JSON list of (mostly) skinny tiddlers.
