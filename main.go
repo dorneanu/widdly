@@ -58,7 +58,6 @@ func main() {
 
 	// Init status information
 	api.ReadOnly = *readOnly
-	api.SetStatus()
 
 	// Set default URL path
 	api.DefaultURLPath = fmt.Sprintf("%s", *urlPath)

@@ -61,7 +61,7 @@ var (
 	ServeMux = http.NewServeMux()
 
 	// ReadOnly defines if TW instance should run in read-only mode
-	ReadOnly = false
+	ReadOnly = true
 
 	// InstanceStatus contains all instance relevant information
 	InstanceStatus TiddlyWikiStatus
@@ -80,11 +80,11 @@ func InitRoutes() {
 	ServeMux.HandleFunc(fmt.Sprintf("%s/bags/bag/tiddlers/", DefaultURLPath), withLoggingAndAuth(remove))
 }
 
-// SetStatus sets status response
-func SetStatus() {
-	InstanceStatus = TiddlyWikiStatus{
+// GetStatus return current status response
+func GetStatus(readOnly bool) *TiddlyWikiStatus {
+	return &TiddlyWikiStatus{
 		Username: "me",
-		ReadOnly: ReadOnly,
+		ReadOnly: readOnly,
 		Space: TiddlyWikiRecipe{
 			Recipe: "all",
 		},
@@ -178,9 +178,22 @@ func status(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if x-api-key header (used for authentication) is set
+	// If positive we disable the read-only mode
+	// The header has to contain the right value otherwise the client
+	// won't be able to PUT/DELETE stuff. The authorization is handled
+	// in serverless.yml file
+	var curStatus *TiddlyWikiStatus
+	apiKey := r.Header.Get("x-api-key")
+	if len(apiKey) > 0 {
+		curStatus = GetStatus(false)
+	} else {
+		curStatus = GetStatus(true)
+	}
+
 	// Send status to client
 	w.Header().Set("Content-Type", "application/json")
-	jsonData, err := json.Marshal(InstanceStatus)
+	jsonData, err := json.Marshal(curStatus)
 	if err != nil {
 		http.Error(w, "couldn't marshal status information", http.StatusInternalServerError)
 	}

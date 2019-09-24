@@ -82,7 +82,7 @@ func TestIndex(t *testing.T) {
 }
 
 func TestStatus(t *testing.T) {
-	SetStatus()
+	currentStatus := GetStatus()
 	r := httptest.NewRequest("GET", "/status", nil)
 	w := httptest.NewRecorder()
 	status(w, r)
@@ -95,9 +95,9 @@ func TestStatus(t *testing.T) {
 	}
 
 	body := w.Body.String()
-	want, err := json.Marshal(InstanceStatus)
+	want, err := json.Marshal(currentStatus)
 	if err != nil {
-		t.Error("Couldn't marshalize InstanceStatus")
+		t.Error("Couldn't marshalize current status")
 	}
 	if body != string(want) {
 		t.Errorf("want %q, got %q", want, body)
