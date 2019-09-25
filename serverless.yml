@@ -1,7 +1,11 @@
 service: tiddlywiki-serverless 
 
+plugins:
+  - serverless-domain-manager
+
 # Custom variables
 custom:
+
   tiddlersTableName: tiddlers
   tiddlersTableArn: 
     Fn::Join:
@@ -12,6 +16,7 @@ custom:
       - Ref: AWS::Region
       - Ref: AWS::AccountId
       - table/${self:custom.tiddlersTableName}
+
   tiddlersHistoryTableName: tiddlers_history
   tiddlersHistoryTableArn: 
     Fn::Join: 
@@ -23,84 +28,98 @@ custom:
       - Ref: AWS::AccountId
       - table/${self:custom.tiddlersHistoryTableName}
 
+  customDomain:
+    # Put here your own domain name
+    domainName: tiddly.info
+
+    # Change basePath if you wish to run your TW instance with a different URL path
+    # e.g. example.com/tw5/
+    basePath: 'serverless'
+    stage: ${opt:stage}
+    createRoute53Record: true
+  
+
 provider: 
     name: 'aws'
+    apiKeys:
+      - name: API_KEY
+        value: ${opt:apikey}
+    usagePlan:
+      quota:
+        limit: 5000
+        offset: 2
+        period: MONTH
+      throttle:
+        burstLimit: 200
+        rateLimit: 100
     runtime: go1.x
-    region: ${opt:region, 'eu-central-1'}
-    role: ${opt:stage}LambdaExecutionRole
+    region: ${opt:region, 'us-east-1'}
+    role: LambdaExecutionRole
     deploymentBucket:
-        name: widdly
+        name: tiddlywiki-serverless
     environment:
         ENTRYPOINT: https://dynamodb.${self:provider.region}.amazonaws.com 
         WIKIFILE: index.html
         DYNAMODB_TABLE: ${self:service}-${opt:stage, self:opt.stage}
-        URLPATH: api
+        URLPATH: '/serverless'
+        READONLY: true 
 
 package:
-    artifact: widdly-lambda.zip
+    individually: true
+    exclude:
+      - "**/*"
 
 functions:
-    wiki:  
-        name: wiki-lambda-wiki-${opt:stage} 
+    # This function represents the REST API
+    tiddlywiki-serverless-api:  
+        name: tiddlywiki-serverless-api-${opt:stage} 
         handler: widdly-lambda
         memorySize: 128
-        timeout: 60
+        timeout: 30
+        package:
+          include:
+            - widdly-lambda
+            - index.html
         events:
           - http:
-              path: /api/{any+}
-              method: ANY
+              path: /{any+} 
+              method: put
+              private: true
+          - http:
+              path: /{any+}
+              method: delete
+              private: true
+          - http:
+              path: /{any+}
+              method: get 
+          - http:
+              path: /{any+}
+              method: options 
 
-    index:  
-        name: wiki-lambda-index-${opt:stage}
+    # Index will serve the index.html page
+    tiddlywiki-serverless-index:  
+        name: tiddlywiki-serverless-index-${opt:stage}
         handler: widdly-lambda
         memorySize: 128
-        timeout: 60
+        timeout: 30
+        package:
+          include:
+            - widdly-lambda
+            - index.html
         events:
           - http:
-              path: /api/
+              path: /
               method: get
 
 resources:
   Description: Serverless Tiddlywiki using DynamoDB as backend (${opt:stage})
   Resources:
-    #    TiddlersTable:
-    #      Type: AWS::DynamoDB::Table
-    #      DeletionPolicy: Retain
-    #      Properties:
-    #        TableName: ${self:custom.tiddlersTableName} 
-    #        AttributeDefinitions:
-    #            - AttributeName: Key
-    #              AttributeType: S
-    #        KeySchema:
-    #            - AttributeName: Key
-    #              KeyType: HASH
-    #        ProvisionedThroughput:
-    #            ReadCapacityUnits: 5
-    #            WriteCapacityUnits: 5
-    #
-    #    TiddlersHistoryTable:
-    #      Type: AWS::DynamoDB::Table
-    #      DeletionPolicy: Retain
-    #      Properties:
-    #        TableName: ${self:custom.tiddlersHistoryTableName}
-    #        AttributeDefinitions:
-    #            - AttributeName: Key
-    #              AttributeType: S
-    #            - AttributeName: Revision
-    #              AttributeType: N
-    #        KeySchema:
-    #            - AttributeName: Key
-    #              KeyType: HASH
-    #            - AttributeName: Revision
-    #              KeyType: RANGE
-    #        ProvisionedThroughput:
-    #            ReadCapacityUnits: 5
-    #            WriteCapacityUnits: 5
 
-    devLambdaExecutionRole:
+    # Default Lambda execution role 
+    LambdaExecutionRole:
       Type: AWS::IAM::Role
       Properties:
-        RoleName: devLambdaExecutionRole 
+        RoleName: LambdaExecutionRole 
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -130,43 +149,6 @@ resources:
                     - dynamodb:PutItem
                     - dynamodb:GetItem
                     - dynamodb:DeleteItem
-                    - dynamodb:Query
-                    - dynamodb:Scan
-                  Resource: 
-                    - ${self:custom.tiddlersTableArn} 
-                    - ${self:custom.tiddlersHistoryTableArn} 
-
-    # Tiddlywiki is running in read-only modus
-    prodLambdaExecutionRole:
-      Type: AWS::IAM::Role
-      Properties:
-        RoleName: prodLambdaExecutionRole 
-        AssumeRolePolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service:
-                  - lambda.amazonaws.com
-              Action: sts:AssumeRole
-        Policies:
-          - PolicyName: tiddlywiki-serverless-role-${opt:stage}
-            PolicyDocument:
-              Version: '2012-10-17'
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - logs:CreateLogGroup
-                    - logs:CreateLogStream
-                    - logs:PutLogEvents
-                  Resource: 
-                    - arn:aws:logs:*:*:*
-                - Effect: Allow
-                  Action:
-                    - dynamodb:DescribeTable
-                    - dynamodb:UpdateTable
-                    - dynamodb:GetTable
-                    - dynamodb:GetItem
                     - dynamodb:Query
                     - dynamodb:Scan
                   Resource: 
