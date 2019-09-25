@@ -73,6 +73,7 @@ var (
 // InitRoutes inits the mux routes
 func InitRoutes() {
 	log.Println("Default URL Path: ", DefaultURLPath)
+	ServeMux.HandleFunc(fmt.Sprintf("%s", DefaultURLPath), withLoggingAndAuth(index))
 	ServeMux.HandleFunc(fmt.Sprintf("%s/", DefaultURLPath), withLoggingAndAuth(index))
 	ServeMux.HandleFunc(fmt.Sprintf("%s/status", DefaultURLPath), withLoggingAndAuth(status))
 	ServeMux.HandleFunc(fmt.Sprintf("%s/recipes/all/tiddlers.json", DefaultURLPath), withLoggingAndAuth(list))
@@ -157,6 +158,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Println("URL Path: ", r.URL.Path)
+	log.Println("Default URL Path: ", DefaultURLPath)
 	if DefaultURLPath != "" {
 		if r.URL.Path != DefaultURLPath {
 			http.NotFound(w, r)
@@ -173,7 +175,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 
 // status serves the status JSON.
 func status(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
+	if (r.Method != "GET") && (r.Method != "OPTIONS") {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
