@@ -73,7 +73,11 @@ var (
 // InitRoutes inits the mux routes
 func InitRoutes() {
 	log.Println("Default URL Path: ", DefaultURLPath)
-	ServeMux.HandleFunc(fmt.Sprintf("%s", DefaultURLPath), withLoggingAndAuth(index))
+
+	// Empty routes are not allowed
+	if len(DefaultURLPath) > 0 {
+		ServeMux.HandleFunc(fmt.Sprintf("%s", DefaultURLPath), withLoggingAndAuth(index))
+	}
 	ServeMux.HandleFunc(fmt.Sprintf("%s/", DefaultURLPath), withLoggingAndAuth(index))
 	ServeMux.HandleFunc(fmt.Sprintf("%s/status", DefaultURLPath), withLoggingAndAuth(status))
 	ServeMux.HandleFunc(fmt.Sprintf("%s/recipes/all/tiddlers.json", DefaultURLPath), withLoggingAndAuth(list))
