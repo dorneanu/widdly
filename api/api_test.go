@@ -15,10 +15,10 @@ package api
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -79,29 +79,56 @@ func TestIndex(t *testing.T) {
 	if want := "index"; body != want {
 		t.Errorf("want %q, got %q", want, body)
 	}
+
+	t.Run("test index with non-default URL path", func(t *testing.T) {
+		defer func() { DefaultURLPath = "" }()
+		DefaultURLPath = "/testing"
+		r := httptest.NewRequest("GET", "/testing", nil)
+		w := httptest.NewRecorder()
+		index(w, r)
+		if w.Code != 200 {
+			t.Errorf("want 200 OK, got %d", w.Code)
+		}
+	})
 }
 
 func TestStatus(t *testing.T) {
-	currentStatus := GetStatus()
 	r := httptest.NewRequest("GET", "/status", nil)
 	w := httptest.NewRecorder()
-	status(w, r)
-	if w.Code != 200 {
-		t.Errorf("want 200 OK, got %d", w.Code)
-	}
-	ct := w.Header().Get("Content-Type")
-	if want := "application/json"; ct != want {
-		t.Errorf("want %s, got %v", want, ct)
-	}
 
-	body := w.Body.String()
-	want, err := json.Marshal(currentStatus)
-	if err != nil {
-		t.Error("Couldn't marshalize current status")
-	}
-	if body != string(want) {
-		t.Errorf("want %q, got %q", want, body)
-	}
+	t.Run("check status code", func(t *testing.T) {
+		status(w, r)
+		if w.Code != 200 {
+			t.Errorf("want 200 OK, got %d", w.Code)
+		}
+	})
+
+	t.Run("check content type", func(t *testing.T) {
+		ct := w.Header().Get("Content-Type")
+		if want := "application/json"; ct != want {
+			t.Errorf("want %s, got %v", want, ct)
+		}
+	})
+
+	t.Run("check status with read-only", func(t *testing.T) {
+		got := GetStatus(true)
+		expected := &TiddlyWikiStatus{
+			Username: "me", ReadOnly: true, Space: TiddlyWikiRecipe{Recipe: "all"},
+		}
+		if !reflect.DeepEqual(got, expected) {
+			t.Errorf("got %v expected %v", got, expected)
+		}
+	})
+
+	t.Run("check status without read-only", func(t *testing.T) {
+		got := GetStatus(false)
+		expected := &TiddlyWikiStatus{
+			Username: "me", ReadOnly: false, Space: TiddlyWikiRecipe{Recipe: "all"},
+		}
+		if !reflect.DeepEqual(got, expected) {
+			t.Errorf("got %v expected %v", got, expected)
+		}
+	})
 }
 
 func TestList(t *testing.T) {
