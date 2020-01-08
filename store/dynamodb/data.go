@@ -99,6 +99,7 @@ func (t *TiddlerData) Put(tiddler store.Tiddler) (int, error) {
 
 // Delete deletes a tiddler from the table
 func (t *TiddlerData) Delete(key string) error {
+	log.Println("Deleting: ", key)
 	_, err := t.store.svc.DeleteItem(&dynamodb.DeleteItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			t.store.tableKey: {
